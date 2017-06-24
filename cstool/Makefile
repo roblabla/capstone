@@ -6,12 +6,23 @@ include ../functions.mk
 
 LIBNAME = capstone
 
+ifndef BUILDDIR
+BLDIR = .
+OBJDIR = .
+CAPSTONEDIR = ..
+else
+BLDIR = $(abspath $(BUILDDIR))
+OBJDIR = $(BLDIR)/obj
+CAPSTONEDIR = $BLDIR
+endif
+
+
 CFLAGS = -I../include
 LDFLAGS = -O3 -Wall -L.. -l$(LIBNAME)
 
 TARGET = cstool
 SOURCES := $(wildcard *.c)
-OBJECTS := $(SOURCES:.c=.o)
+OBJECTS := $(addprefix $OBJDIR/,$(SOURCES:.c=.o))
 
 LIBCAPSTONE = libcapstone.a
 
@@ -27,7 +38,7 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): ../$(LIBCAPSTONE) $(OBJECTS)
+$(TARGET): $(CAPSTONEDIR)$(LIBCAPSTONE) $(OBJECTS)
 ifeq ($(V),0)
 	$(call log,LINK,$@)
 	@${CC} $(OBJECTS) $(LDFLAGS) -o $@
@@ -36,11 +47,11 @@ else
 endif
 
 clean:
-	${RM} -rf *.o $(TARGET)
+	${RM} -rf $(OBJECTS) $(TARGET)
 
-%.o: %.c
+$(OBJDIR)/%.o: %.c
 ifeq ($(V),0)
-	$(call log,CC,$@)
+	$(call log,CC,$(@:$(OBJDIR)/%=%))
 	@${CC} $(CFLAGS) -c $< -o $@
 else
 	${CC} $(CFLAGS) -c $< -o $@
