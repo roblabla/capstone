@@ -375,10 +375,11 @@ PKGCFGF = $(BLDIR)/$(LIBNAME).pc
 
 all: $(LIBRARY) $(ARCHIVE) $(PKGCFGF)
 ifeq (,$(findstring yes,$(CAPSTONE_BUILD_CORE_ONLY)))
-	@V=$(V) CC=$(CC) $(MAKE) -C cstool
 ifndef BUILDDIR
+	@V=$(V) CC=$(CC) $(MAKE) -C cstool
 	cd tests && $(MAKE)
 else
+	@V=$(V) CC=$(CC) $(MAKE) -C cstool BUILDDIR=$(BLDIR)
 	cd tests && $(MAKE) BUILDDIR=$(BLDIR)
 endif
 	$(call install-library,$(BLDIR)/tests/)
@@ -488,7 +489,7 @@ TESTS += test_skipdata test_skipdata.static test_iter.static
 check:
 	@for t in $(TESTS); do \
 		echo Check $$t ... ; \
-		LD_LIBRARY_PATH=./tests ./tests/$$t > /dev/null && echo OK || echo FAILED; \
+		LD_LIBRARY_PATH=$(BLDIR)/tests $(BLDIR)/tests/$$t > /dev/null && echo OK || echo FAILED; \
 	done
 
 $(OBJDIR)/%.o: %.c
